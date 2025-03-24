@@ -1,15 +1,12 @@
 import '@testing-library/jest-dom';
-import 'jest-chrome';
+import { chrome } from 'jest-chrome';
+
+// Make chrome available globally
+global.chrome = chrome;
 
 // Mock browser APIs not available in jsdom
 global.browser = {
-  runtime: {
-    sendMessage: jest.fn(),
-    onMessage: {
-      addListener: jest.fn(),
-      removeListener: jest.fn(),
-    },
-  },
+  runtime: {},
   storage: {
     local: {
       get: jest.fn(),
@@ -21,6 +18,11 @@ global.browser = {
     },
   },
 };
+
+// Wire up browser.runtime methods to mirror chrome.runtime
+Object.defineProperty(global.browser.runtime, 'sendMessage', {
+  get: () => chrome.runtime.sendMessage.getMockImplementation() ? chrome.runtime.sendMessage : undefined
+});
 
 // Suppress console errors during tests
 console.error = jest.fn();
