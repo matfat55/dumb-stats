@@ -10,6 +10,17 @@ const App = () => {
   const [clicksValue, setClicksValue] = useState(0);
   const [keyPressValue, setKeyPressValue] = useState(0);
   const [pagesValue, setPagesValue] = useState(0);
+  const [resetConfirmation, setResetConfirmation] = useState(0);
+
+  // Reset confirmation timeout
+  useEffect(() => {
+    if (resetConfirmation > 0) {
+      const timeout = setTimeout(() => {
+        setResetConfirmation(0);
+      }, 3000); // Reset after 3 seconds
+      return () => clearTimeout(timeout);
+    }
+  }, [resetConfirmation]);
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -44,14 +55,31 @@ const App = () => {
   getData();
 
   const resetStats = () => {
-    chrome.storage.local.set({
-      totalLength: 0,
-      clickCount: 0,
-      keyPressCount: 0,
-      pagesCount: 0,
-      totalViewTime: 0,
-    });
-    getData();
+    if (resetConfirmation === 0) {
+      setResetConfirmation(1);
+    } else if (resetConfirmation === 1) {
+      setResetConfirmation(2);
+    } else {
+      chrome.storage.local.set({
+        totalLength: 0,
+        clickCount: 0,
+        keyPressCount: 0,
+        pagesCount: 0,
+      });
+      getData();
+      setResetConfirmation(0);
+    }
+  };
+
+  const getResetButtonText = () => {
+    switch (resetConfirmation) {
+      case 1:
+        return 'Click again to confirm reset';
+      case 2:
+        return 'Click once more to reset';
+      default:
+        return 'reset';
+    }
   };
 
   const getKcal = val =>
@@ -194,7 +222,7 @@ const App = () => {
           <Logo />
         </div>
         <div>
-          <button onClick={resetStats}>reset</button>
+          <button onClick={resetStats}>{getResetButtonText()}</button>
         </div>
       </div>
       <div className="item-container">
