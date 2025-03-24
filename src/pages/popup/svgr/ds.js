@@ -1,6 +1,6 @@
-import * as React from "react"
+import * as React from 'react';
 
-const SvgComponent = (props) => (
+const SvgComponent = props => (
   <svg
     id="Layer_1"
     data-name="Layer 1"
@@ -9,7 +9,7 @@ const SvgComponent = (props) => (
     {...props}
   >
     <defs>
-      <style>{".cls-1{fill:#080708}.cls-2{fill:#3772ff}"}</style>
+      <style>{'.cls-1{fill:#080708}.cls-2{fill:#3772ff}'}</style>
     </defs>
     <path
       className="cls-1"
@@ -55,6 +55,6 @@ const SvgComponent = (props) => (
       />
     </g>
   </svg>
-)
+);
 
-export default SvgComponent
+export default SvgComponent;

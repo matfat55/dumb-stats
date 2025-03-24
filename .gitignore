@@ -1,2 +1,22 @@
-node_modules
-.DS_Store
+# Dependencies
+node_modules/
+
+# Build output
+dist/
+build/
+
+# Testing
+coverage/
+
+# Environment files
+.env
+.env.*
+!.env.example
+
+
+# Logs
+logs
+*.log
+
+
+pnpm-lock.yaml

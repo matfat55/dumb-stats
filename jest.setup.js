@@ -1,9 +1,31 @@
-import { chrome } from 'jest-chrome'
+import '@testing-library/jest-dom';
+import 'jest-chrome';
 
-// @ts-expect-error we need to set this to use browser polyfill
-chrome.runtime.id = 'test id'
-Object.assign(global, { chrome })
+// Mock browser APIs not available in jsdom
+global.browser = {
+  runtime: {
+    sendMessage: jest.fn(),
+    onMessage: {
+      addListener: jest.fn(),
+      removeListener: jest.fn(),
+    },
+  },
+  storage: {
+    local: {
+      get: jest.fn(),
+      set: jest.fn(),
+    },
+    sync: {
+      get: jest.fn(),
+      set: jest.fn(),
+    },
+  },
+};
 
-// We need to require this after we setup jest chrome
-const browser = require('webextension-polyfill')
-Object.assign(global, { browser })
+// Suppress console errors during tests
+console.error = jest.fn();
+
+// Clean up after each test
+afterEach(() => {
+  jest.clearAllMocks();
+});
