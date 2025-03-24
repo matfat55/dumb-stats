@@ -49,6 +49,7 @@ const App = () => {
       clickCount: 0,
       keyPressCount: 0,
       pagesCount: 0,
+      totalViewTime: 0,
     });
     getData();
   };
@@ -130,11 +131,37 @@ const App = () => {
     return dDisplay + hDisplay + mDisplay + sDisplay;
   };
 
-  const getCalculatedTime = val => {
-    const time = calculateTime(54 * val);
-    return !time
-      ? `Visit any page to start collecting rough information about your time`
-      : `You have spent approximately ` + time + ` on this`;
+  const formatViewTime = (ms) => {
+    if (!ms) return "No viewing time recorded yet";
+    
+    const seconds = Math.floor(ms / 1000);
+    const minutes = Math.floor(seconds / 60);
+    const hours = Math.floor(minutes / 60);
+    const days = Math.floor(hours / 24);
+    
+    const parts = [];
+    if (days > 0) parts.push(`${days}d`);
+    if (hours % 24 > 0) parts.push(`${hours % 24}h`);
+    if (minutes % 60 > 0) parts.push(`${minutes % 60}m`);
+    if (seconds % 60 > 0) parts.push(`${seconds % 60}s`);
+    
+    return parts.length > 0 ? parts.join(' ') : '0s';
+  };
+
+  const [totalViewTime, setTotalViewTime] = useState(0);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      chrome.storage.local.get(['totalViewTime'], val => {
+        setTotalViewTime(val.totalViewTime || 0);
+      });
+    }, 1000);
+    return () => clearInterval(interval);
+  }, []);
+
+  const getViewTimeDescription = () => {
+    if (totalViewTime === 0) return "Start browsing to track your actual viewing time";
+    return `You've actively spent ${formatViewTime(totalViewTime)} browsing`;
   };
 
   const getNovelCount = val =>
@@ -217,9 +244,9 @@ const App = () => {
           <div id="icon">
             <PagesIcon />
           </div>
-          <h1 className="name">pages viewed</h1>
-          <h1 className="val">{formatNum(pagesValue)}</h1>
-          <p className="description">{getCalculatedTime(pagesValue)}</p>
+          <h1 className="name">browsing stats</h1>
+          <h1 className="val">{formatNum(pagesValue)} pages</h1>
+          <p className="description">{getViewTimeDescription()}</p>
         </div>
       </div>
     </div>
