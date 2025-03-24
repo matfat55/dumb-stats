@@ -6,7 +6,7 @@ let previousPosition = 0;
 const updateActivity = () => {
   const now = Date.now();
   lastActivity = now;
-  
+
   if (!isActive) {
     isActive = true;
     chrome.runtime.sendMessage({ type: 'activityStateChanged', isActive });
@@ -24,11 +24,11 @@ const main = () => {
   // Track scrolling
   window.addEventListener('scroll', () => {
     updateActivity();
-    
+
     const position = window.pageYOffset;
     const scrolled = Math.abs(position - previousPosition) * 0.0002645833;
     previousPosition = position;
-    
+
     chrome.storage.local.get(['totalLength'], val => {
       const newTotalLength = scrolled + (val.totalLength || 0);
       chrome.storage.local.set({ totalLength: newTotalLength });
@@ -38,7 +38,7 @@ const main = () => {
   // Track clicks
   window.addEventListener('click', () => {
     updateActivity();
-    
+
     chrome.storage.local.get(['clickCount'], val => {
       const newClickCount = (val.clickCount || 0) + 1;
       chrome.storage.local.set({ clickCount: newClickCount });
@@ -48,7 +48,7 @@ const main = () => {
   // Track keystrokes
   window.addEventListener('keyup', () => {
     updateActivity();
-    
+
     chrome.storage.local.get(['keyPressCount'], val => {
       const newPressCount = (val.keyPressCount || 0) + 1;
       chrome.storage.local.set({ keyPressCount: newPressCount });

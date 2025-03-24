@@ -118,33 +118,20 @@ const App = () => {
       ? `There are ${formatNum(388479301 - val)} more meters to reach the Moon`
       : `You have reached the Moon. It is the END.`;
 
-  const calculateTime = seconds => {
-    seconds = Number(seconds);
-    var d = Math.floor(seconds / (3600 * 24));
-    var h = Math.floor((seconds % (3600 * 24)) / 3600);
-    var m = Math.floor((seconds % 3600) / 60);
-    var s = Math.floor(seconds % 60);
-    var dDisplay = d > 0 ? d + (d == 1 ? ' day, ' : ' days, ') : '';
-    var hDisplay = h > 0 ? h + (h == 1 ? ' hour, ' : ' hours, ') : '';
-    var mDisplay = m > 0 ? m + (m == 1 ? ' minute, ' : ' minutes, ') : '';
-    var sDisplay = s > 0 ? s + (s == 1 ? ' second' : ' seconds') : '';
-    return dDisplay + hDisplay + mDisplay + sDisplay;
-  };
+  const formatViewTime = ms => {
+    if (!ms) return 'No viewing time recorded yet';
 
-  const formatViewTime = (ms) => {
-    if (!ms) return "No viewing time recorded yet";
-    
     const seconds = Math.floor(ms / 1000);
     const minutes = Math.floor(seconds / 60);
     const hours = Math.floor(minutes / 60);
     const days = Math.floor(hours / 24);
-    
+
     const parts = [];
     if (days > 0) parts.push(`${days}d`);
     if (hours % 24 > 0) parts.push(`${hours % 24}h`);
     if (minutes % 60 > 0) parts.push(`${minutes % 60}m`);
     if (seconds % 60 > 0) parts.push(`${seconds % 60}s`);
-    
+
     return parts.length > 0 ? parts.join(' ') : '0s';
   };
 
@@ -160,7 +147,8 @@ const App = () => {
   }, []);
 
   const getViewTimeDescription = () => {
-    if (totalViewTime === 0) return "Start browsing to track your actual viewing time";
+    if (totalViewTime === 0)
+      return 'Start browsing to track your actual viewing time';
     return `You've actively spent ${formatViewTime(totalViewTime)} browsing`;
   };
 
