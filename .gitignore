@@ -18,5 +18,3 @@ coverage/
 logs
 *.log
 
-
-pnpm-lock.yaml
