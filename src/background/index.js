@@ -1,5 +1,6 @@
 // Track active tabs and their viewing time
 const activePages = new Map();
+const PAGE_COUNT_DELAY = 500; // 0.5 seconds in milliseconds
 
 const updatePageStats = (tabId, isActive) => {
   const now = Date.now();
@@ -24,6 +25,20 @@ const updatePageStats = (tabId, isActive) => {
   });
 };
 
+// Normalize URLs to compare them effectively
+const normalizeUrl = (url) => {
+  try {
+    const urlObj = new URL(url);
+    // Remove fragment
+    urlObj.hash = '';
+    // Remove common dynamic parameters that don't indicate a new page
+    ['utm_source', 'utm_medium', 'utm_campaign'].forEach(param => urlObj.searchParams.delete(param));
+    return urlObj.toString();
+  } catch (e) {
+    return url;
+  }
+};
+
 // Handle tab activation changes
 chrome.tabs.onActivated.addListener(({ tabId }) => {
   // Deactivate all other tabs
@@ -43,17 +58,39 @@ chrome.tabs.onActivated.addListener(({ tabId }) => {
 chrome.webNavigation.onCompleted.addListener(({ tabId, url }) => {
   if (url.includes('chrome://') || url.includes('chrome-extension://')) return;
 
-  activePages.set(tabId, {
-    url,
-    startTime: Date.now(),
-    lastActive: Date.now(),
-    totalActive: 0,
-  });
+  const normalizedUrl = normalizeUrl(url);
+  const existingPage = activePages.get(tabId);
+  
+  // Only count as new page if:
+  // 1. There's no existing page for this tab, or
+  // 2. The normalized URLs are different
+  if (!existingPage || normalizeUrl(existingPage.url) !== normalizedUrl) {
+    const startTime = Date.now();
+    activePages.set(tabId, {
+      url,
+      startTime,
+      lastActive: Date.now(),
+      totalActive: 0,
+      pageCountAdded: false, // Flag to track if this page has been counted
+    });
 
-  chrome.storage.local.get(['pagesCount'], val => {
-    const newPagesCount = (val.pagesCount || 0) + 1;
-    chrome.storage.local.set({ pagesCount: newPagesCount });
-  });
+    // Only count the page after PAGE_COUNT_DELAY milliseconds
+    setTimeout(() => {
+      const currentPageData = activePages.get(tabId);
+      // Verify it's still the same page and hasn't been counted
+      if (currentPageData && 
+          normalizeUrl(currentPageData.url) === normalizedUrl && 
+          !currentPageData.pageCountAdded) {
+        chrome.storage.local.get(['pagesCount'], val => {
+          const newPagesCount = (val.pagesCount || 0) + 1;
+          chrome.storage.local.set({ pagesCount: newPagesCount });
+          // Mark this page as counted
+          currentPageData.pageCountAdded = true;
+          activePages.set(tabId, currentPageData);
+        });
+      }
+    }, PAGE_COUNT_DELAY);
+  }
 });
 
 // Handle tab close/removal
